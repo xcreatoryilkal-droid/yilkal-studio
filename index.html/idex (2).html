@@ -1,0 +1,350 @@
+<!doctype html>
+<!--
+  yilkalstudio_portfolio.html
+  Single-file responsive portfolio for "YilkalStudio" (HTML/CSS/JS)
+  - Modern, accessible UI/UX
+  - Responsive grid & modal portfolio showcase
+  - Contact form with client-side validation and fetch to /api/contact
+  - Notes at the top explain simple backend options (Node/Express sample recommended)
+
+  To use:
+  1. Save as yilkalstudio_portfolio.html and open in a browser.
+  2. Replace placeholder text, images, and links with Yilkal's content.
+  3. For a working contact form, implement an API endpoint at /api/contact (example server code commented below).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>YilkalStudio — Freelance UI/UX & Web</title>
+  <meta name="description" content="YilkalStudio — Freelance UI/UX design, frontend development, and product design. Portfolio & contact." />
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#7c5cff; --accent-2:#00d4ff;
+      --glass: rgba(255,255,255,0.04); --glass-2: rgba(255,255,255,0.02);
+      --radius: 14px; --maxw:1100px; --blur: 12px;
+      --ff-sans: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;}
+    body{
+      margin:0; font-family:var(--ff-sans); background:linear-gradient(180deg,#071026 0%, #071220 40%, #051029 100%); color:#e6eef8; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      display:flex; justify-content:center; padding:36px 20px; 
+    }
+    .wrap{width:100%;max-width:var(--maxw);}
+
+    /* Header / Nav */
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;font-weight:700;color:#021227}
+    .brand h1{font-size:18px;margin:0}
+    nav{display:flex;gap:12px;align-items:center}
+    nav a{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:10px;font-weight:600}
+    nav a:hover{background:var(--glass);color:#fff}
+
+    /* Hero */
+    .hero{display:grid;grid-template-columns:1fr 420px;gap:28px;align-items:center;margin-bottom:28px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); padding:28px;border-radius:var(--radius);box-shadow:0 8px 30px rgba(2,6,23,0.6);backdrop-filter: blur(var(--blur));}
+    .hero-left h2{font-size:28px;margin:0 0 8px}
+    .eyebrow{display:inline-block;background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:6px 10px;border-radius:999px;font-weight:700;color:#021227;margin-bottom:12px}
+    .lead{color:var(--muted);line-height:1.5;margin-bottom:18px}
+    .cta{display:flex;gap:10px}
+    .btn{padding:12px 16px;border-radius:12px;font-weight:700;border:none;cursor:pointer}
+    .btn-primary{background:linear-gradient(90deg,var(--accent),#a77bff);color:#021227}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+
+    /* Stats / badges */
+    .stats{display:flex;gap:12px;margin-top:16px}
+    .stat{background:var(--glass-2);padding:10px 14px;border-radius:12px;font-weight:700;color:var(--muted)}
+
+    /* Right card - quick contact */
+    .contact-quick{display:flex;flex-direction:column;gap:12px}
+    .contact-quick p{margin:0;color:var(--muted)}
+
+    /* Services */
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
+    .service{padding:18px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.015),transparent);box-shadow:inset 0 1px rgba(255,255,255,0.02)}
+    .service h3{margin:8px 0}
+    .service p{margin:0;color:var(--muted);font-size:14px}
+
+    /* Portfolio */
+    .portfolio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .work{position:relative;overflow:hidden;border-radius:12px;min-height:160px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.2));display:flex;align-items:flex-end;padding:12px}
+    .work .meta{backdrop-filter: blur(6px);background:rgba(2,6,20,0.4);padding:10px;border-radius:8px}
+    .work img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0.22}
+
+    /* Modal */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:36px}
+    .modal.open{display:flex}
+    .modal .panel{width:100%;max-width:900px;background:linear-gradient(180deg,#041024 0%,#061428 100%);border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(2,6,23,0.8)}
+
+    /* Testimonials */
+    .test-list{display:flex;gap:12px;overflow:auto;padding-bottom:6px}
+    .thumb{width:64px;height:64px;border-radius:12px;background:var(--glass);display:grid;place-items:center}
+
+    /* Contact */
+    .contact-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#e8f0ff}
+    textarea{min-height:120px}
+    .full{grid-column:1/-1}
+
+    footer{margin-top:28px;text-align:center;color:var(--muted);font-size:13px;padding:18px}
+
+    /* Responsive */
+    @media (max-width:920px){
+      .hero{grid-template-columns:1fr;}
+      .grid{grid-template-columns:repeat(2,1fr)}
+      .portfolio-grid{grid-template-columns:repeat(2,1fr)}
+      .contact-form{grid-template-columns:1fr}
+    }
+    @media (max-width:560px){
+      nav{display:none}
+      .logo{width:48px;height:48px}
+      .portfolio-grid{grid-template-columns:1fr}
+      .grid{grid-template-columns:1fr}
+    }
+
+    /* small helpers */
+    .muted{color:var(--muted)}
+    .kbd{background:rgba(255,255,255,0.03);padding:6px 10px;border-radius:8px;font-weight:700}
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">YS</div>
+        <div>
+          <h1>YilkalStudio</h1>
+          <div class="muted">Freelance UI/UX • Frontend • Branding</div>
+        </div>
+      </div>
+      <nav aria-label="Primary">
+        <a href="#work">Portfolio</a>
+        <a href="#services">Services</a>
+        <a href="#about">About</a>
+        <a href="#contact" class="kbd">Contact</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="card hero-left">
+        <span class="eyebrow">Available for hire</span>
+        <h2>Beautiful, usable interfaces<br/>that tell a story.</h2>
+        <p class="lead">hi im yilkal- a Certfiedweb developer who builds fast,resposive, and professional web sites using HTML,CSS,JavaScript.</p>
+        <div class="cta">
+          <button class="btn btn-primary" onclick="scrollToSection('contact')">Hire Yilkal</button>
+          <a class="btn btn-ghost" href="#work">View Work</a>
+        </div>
+        <div class="stats" role="list">
+          <div class="stat" role="listitem">10+ Successful Projects</div>
+          <div class="stat" role="listitem">5+ Happy Clients</div>
+        </div>
+      </div>
+
+      <aside class="card contact-quick">
+        <h3 style="margin:0">Quick contact</h3>
+        <p class="muted">Email: <strong>hello@yilkalstudio.example</strong></p>
+        <p class="muted">Location: Addis Ababa, ET</p>
+        <p class="muted">Specialties: UI/UX, Frontend, Branding</p>
+        <div style="margin-top:auto">
+          <button class="btn btn-primary" onclick="scrollToSection('contact')">Send Inquiry</button>
+        </div>
+      </aside>
+    </section>
+
+    <section id="services">
+      <h2>Services</h2>
+      <div class="grid">
+        <div class="service card">
+          <h3>UI / Product Design</h3>
+          <p>Create high-fidelity interfaces, component libraries, and design systems for product teams.</p>
+        </div>
+        <div class="service card">
+          <h3>Web Development</h3>
+          <p>Modern, accessible, and fast websites built with performance and SEO in mind.</p>
+        </div>
+        <div class="service card">
+          <h3>Branding & Identity</h3>
+          <p>Logo exploration, visual guidelines and marketing assets to make brands memorable.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="work" style="margin-top:18px">
+      <h2>Selected Work</h2>
+      <div class="portfolio-grid" id="portfolio">
+        <!-- Work item template -->
+        <div class="work card" tabindex="0" role="button" aria-pressed="false" onclick="openModal(0)">
+          <img alt="Project: E‑commerce UI" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'><rect fill='%23051a35' width='100%' height='100%'/><text x='50%' y='50%' font-size='28' fill='%23ffffff' text-anchor='middle' font-family='Arial'>E-commerce UI</text></svg>">
+          <div class="meta">
+            <div style="font-weight:700">E-commerce UI</div>
+            <div class="muted">Web • UI • Prototype</div>
+          </div>
+        </div>
+
+        <div class="work card" tabindex="0" role="button" aria-pressed="false" onclick="openModal(1)">
+          <img alt="Project: SaaS Dashboard" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'><rect fill='%2322203a' width='100%' height='100%'/><text x='50%' y='50%' font-size='28' fill='%23ffffff' text-anchor='middle' font-family='Arial'>SaaS Dashboard</text></svg>">
+          <div class="meta">
+            <div style="font-weight:700">SaaS Dashboard</div>
+            <div class="muted">Product • UX • React</div>
+          </div>
+        </div>
+
+        <div class="work card" tabindex="0" role="button" aria-pressed="false" onclick="openModal(2)">
+          <img alt="Project: Mobile App" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'><rect fill='%231a2b1f' width='100%' height='100%'/><text x='50%' y='50%' font-size='28' fill='%23ffffff' text-anchor='middle' font-family='Arial'>Mobile App</text></svg>">
+          <div class="meta">
+            <div style="font-weight:700">Mobile App</div>
+            <div class="muted">iOS/Android • UX • Prototype</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="about" style="margin-top:18px">
+      <div class="card">
+        <h2>About Yilkal</h2>
+        <p class="muted">I combine research-led UX with front-end craftsmanship. I like to ship production-ready UI components and pixel-faithful designs. Past clients include startups and growing e-commerce teams.</p>
+
+        <h3 style="margin-top:16px">Testimonials</h3>
+        <div class="test-list">
+          <div class="card" style="min-width:240px;padding:12px">
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px"><div class="thumb">JD</div><div><strong>John Doe</strong><div class="muted">Founder, Acme</div></div></div>
+            <div class="muted">"Fast, communicative and delivered a fantastic product. Helped increase conversion by 18%."</div>
+          </div>
+          <div class="card" style="min-width:240px;padding:12px">
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px"><div class="thumb">MK</div><div><strong>Mary K</strong><div class="muted">PM, Beta</div></div></div>
+            <div class="muted">"Great at breaking down complex features and shipping practical UI patterns."</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" style="margin-top:18px">
+      <h2>Contact</h2>
+      <div class="card">
+        <form id="contactForm" class="contact-form" onsubmit="return handleSubmit(event)">
+          <div>
+            <label for="name">Full name</label>
+            <input id="name" name="name" required placeholder="Yilkal Gebre" />
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required placeholder="you@example.com" />
+          </div>
+          <div class="full">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" required placeholder="Tell me about your project..."></textarea>
+          </div>
+          <div class="full" style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+            <div class="muted">Or email directly: <strong>yilkalstudio@gmail.com</strong></div>
+            <button class="btn btn-primary" type="submit">Send message</button>
+          </div>
+        </form>
+        <div id="formStatus" aria-live="polite" style="margin-top:12px;color:var(--muted)"></div>
+      </div>
+    </section>
+
+    <footer>
+      © <span id="year"></span> YilkalStudio — Built with care. • <span class="muted">Made for freelancers & startups</span>
+    </footer>
+
+  </div>
+
+  <!-- Modal structure -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="panel">
+      <button onclick="closeModal()" aria-label="Close" style="float:right;background:transparent;border:none;color:var(--muted);font-weight:700">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    // --- small accessibility helpers ---
+    document.getElementById('year').textContent = new Date().getFullYear();
+    function scrollToSection(id){
+      document.getElementById(id).scrollIntoView({behavior:'smooth',block:'center'});
+    }
+
+    // Portfolio data (replace with real content/images)
+    const projects = [
+      {title:'E-commerce UI',tags:'Web • UI • Prototype',desc:'A conversion focused storefront UI with atomic design components and A/B tested product pages.',images:[]},
+      {title:'SaaS Dashboard',tags:'Product • UX • React',desc:'Admin dashboard for business analytics with a focus on clarity and data density.' ,images:[]},
+      {title:'Mobile App',tags:'Mobile • UX • Prototype',desc:'Native-feeling mobile app flow with onboarding and retention-focused design.' ,images:[]}
+    ];
+
+    function openModal(i){
+      const m = document.getElementById('modal');
+      const content = document.getElementById('modalContent');
+      const p = projects[i] || projects[0];
+      content.innerHTML = `\n        <h2 style="margin-top:0">${p.title}</h2>\n        <p class=\"muted\">${p.tags}</p>\n        <p style=\"margin-top:12px\">${p.desc}</p>\n        <div style=\"display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px\">\n          <div style=\"min-height:120px;border-radius:10px;background:linear-gradient(180deg,#061725,#081a2b)\">Image / mockup</div>\n          <div style=\"min-height:120px;border-radius:10px;background:linear-gradient(180deg,#0a1b2a,#0b2030)\">More images</div>\n        </div>\n        <div style=\"margin-top:14px;display:flex;gap:10px\">\n          <a class=\"btn btn-primary\" href=\"#\">Case study</a>\n          <a class=\"btn btn-ghost\" href=\"#\">Live demo</a>\n        </div>\n      `;
+      m.classList.add('open');
+      m.setAttribute('aria-hidden','false');
+    }
+    function closeModal(){
+      const m = document.getElementById('modal');
+      m.classList.remove('open');
+      m.setAttribute('aria-hidden','true');
+    }
+
+    // Close modal on escape
+    document.addEventListener('keydown', (e)=>{if(e.key==='Escape') closeModal();});
+
+    // --- Contact form ---
+    async function handleSubmit(e){
+      e.preventDefault();
+      const status = document.getElementById('formStatus');
+      const form = e.target;
+      const data = {name:form.name.value.trim(), email:form.email.value.trim(), message:form.message.value.trim()};
+      if(!data.name || !data.email || !data.message){ status.textContent='Please fill all required fields.'; return false; }
+      status.textContent = 'Sending...';
+      try{
+        // TRY: post to /api/contact (create this endpoint in your backend). If not available, you can
+        // connect the form to services like Formspree, Netlify Forms, or a simple server endpoint.
+        const res = await fetch('/api/contact',{
+          method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)
+        });
+        if(res.ok){ status.textContent='Message sent — I will reply shortly.'; form.reset(); }
+        else { const txt = await res.text(); status.textContent = 'Error sending: '+(txt||res.status); }
+      }catch(err){
+        console.error(err); status.textContent = 'Could not send message. If this persists, email hello@yilkalstudio.example';
+      }
+      return false;
+    }
+
+    // Lightweight interaction: keyboard focus style for work cards
+    Array.from(document.querySelectorAll('.work')).forEach((el,i)=>{
+      el.addEventListener('keydown',(e)=>{ if(e.key==='Enter' || e.key===' ') { openModal(i); e.preventDefault(); } });
+    });
+
+  </script>
+
+  <!--
+    Backend example (Node/Express + nodemailer) - create a file server.js and install express & nodemailer
+
+    const express = require('express');
+    const nodemailer = require('nodemailer');
+    const app = express();
+    app.use(express.json());
+    app.post('/api/contact', async (req,res)=>{
+      const {name,email,message} = req.body;
+      if(!name||!email||!message) return res.status(400).send('Missing fields');
+      // Configure transporter with SMTP credentials (e.g. Gmail/SendGrid)
+      const transporter = nodemailer.createTransport({ host:'smtp.example.com', port:587, auth:{user:'user',pass:'pass'} });
+      await transporter.sendMail({ from: 'hello@yilkalstudio.example', to: 'yilkal-real-email@example.com', subject:`New contact from ${name}`, text:`${message}\n\nReply to: ${email}` });
+      res.sendStatus(200);
+    });
+    app.use(express.static('.')); // serve the html file
+    app.listen(3000,()=>console.log('listening on 3000'));
+
+    Notes:
+    - For production use a transactional email provider (SendGrid, Mailgun, Postmark) or serverless function.
+    - If you prefer no backend, use Formspree or Netlify Forms by changing the form action.
+  -->
+
+</body>
+</html>
+
